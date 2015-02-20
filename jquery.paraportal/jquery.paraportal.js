@@ -95,7 +95,9 @@
 
                 var def = jQuery.Deferred();
 
-                if ($.inArray(permissions.Product, this.permissions) != -1) {
+                if (!loggedIn) {
+                    def.reject("Not logged in");
+                } else if ($.inArray(permissions.Product, paraportal.permissions) != -1) {
                     $.get("/ics/support/myproducts.asp").done(function (data, status) {
 
                         if ($('.errormessage', data).length > 0) {
@@ -139,7 +141,9 @@
             paraportal.getCustomerFields = function () {
                 var def = $.Deferred();
 
-                if ($.inArray(permissions["My Profile"], this.permissions) != -1) {
+                if (!loggedIn) {
+                    def.reject("Not logged in");
+                } else if ($.inArray(permissions["My Profile"], paraportal.permissions) != -1) {
                     $.get("/ics/support/myprofile.asp").done(function (data, status) {
 
                         if ($('.errormessage', data).length > 0) {
@@ -148,9 +152,30 @@
                             var customerFields = [];
 
                             $('div[id*="ROW"]', data).each(function() {
-                                if ($('input[type="password"]').length == 0) {
+                                if ($('input[type="password"]', this).length == 0) {
                                     var field = {};
+                                    //determine if its required
+                                    field.required = $('.required', this).length > 0;
+                                    $('.required,.colon,.maxchars', this).remove();
 
+                                    //Get the name
+                                    field.name = $.trim($('label', this).text());
+
+                                    if ($('select', this).length == 1) {
+                                        //This is an dropdown field
+                                        field.type = "option";
+                                    } else if ($('select', this).length == 3) {
+                                        //This is a date field
+                                        field.type = "date";
+                                    } else if ($('textarea', this).length > 0) {
+                                        field.type = "text";
+                                    } else if ($('input[type="text"]', this).length > 0) {
+                                        field.type = 'text';
+                                    } else if ($('input[type="checkbox"]', this).length == 1) {
+                                        field.type = "checkbox";
+                                    } else if (($('input[type="checkbox"]', this).length > 1) {
+                                        field.type = "option";
+                                    }
 
                                     customerFields.push(field);
                                 }                                
@@ -181,9 +206,7 @@
                 if (matches) {
                     paraportal.customer.custNum = matches[0];
                 } else {
-                    paraportal.customer.custNum = (function() {
-                        throw "Configuration Issue: Customer Number is not available. Please make sure that the Customer Number static field is present and that the field is not set to internal.";
-                    })();
+                    if(window.console) console.log("Warning: Customer Number is not available. If you need this information, please make sure that the Customer Number static field is present and that the field is not set to internal.");
                 }
             }
 
@@ -197,8 +220,8 @@
                 "#mli_ticket": permissions["Ticket"],
                 "#mli_myHistory" : permissions["My Support"],
                 "#mli_mySubscriptions": permissions["KB Subscribe"],
-                "#mli_myProducts": permissions.Product,
-                "#mly_myProfile" : permissions["My Profile"],
+                "#mli_myProducts": permissions["Product"],
+                "#mli_myProfile" : permissions["My Profile"],
                 "#mli_email": permissions["Email"],
                 "#mli_glossary": permissions["Glossary"],
                 "#mli_troubleshooter": permissions["Troubleshooter"] //FYI Troubleshooter is sub-optimal, just use EasyAnswer
