@@ -1,88 +1,5 @@
 ﻿if (jQuery) {
 
-    var fieldHelpers = {};
-    fieldHelpers.parseRow = function(rowElement) {
-        if ($('input[type="password"]', rowElement).length == 0) {
-            var field = {};
-            //determine if its required
-            field.required = $('.required', rowElement).length > 0;
-            $('.required,.colon,.maxchars', rowElement).remove();
-
-            //Get the name
-            field.name = $.trim($('label', rowElement).text());
-
-            if ($('select', rowElement).length == 1) {
-                //This is an dropdown field
-                fieldHelpers.parseSelect($('select', rowElement), field);
-            } else if ($('select', rowElement).length == 3) {
-                //This is a date field
-                fieldHelpers.parseDate(rowElement, field);
-            } else if ($('textarea', rowElement).length > 0) {
-                fieldHelpers.parseTextarea($('textarea', rowElement));
-            } else if ($('input[type="text"]', rowElement).length > 0) {
-                fieldHelpers.parseTextbox($('input[type="text"]', rowElement));
-            } else if ($('input[type="checkbox"]', rowElement).length == 1) {
-                fieldHelpers.parseCheckbox($('input[type="checkbox"]', rowElement), field);
-            } else if (($('input[type="checkbox"]', rowElement).length > 1)) {
-                fieldHelpers.parseMulticheck(rowElement, field);
-            } else if ($('input[type="radio"]', rowElement).length > 0) {
-                fieldHelpers.parseRadio(rowElement, field);
-            }
-
-            return field;
-        }
-    };
-    fieldHelpers.parseSelect = function(selectElement, field) {
-        field.type = "option";
-        if ($(selectElement).attr('multiple') == "multiple") {
-            field.multiple = true;
-            field.selectedOptions = [];
-            var selectedOptions = $('option:selected', selectElement);
-            selectedOptions.each(function() {
-                if ($(this).val()) {
-                    var option = {};
-                    option.selectedOptionValue = $(this).val();
-                    option.selectedOptionName = $(this).text();
-                    field.selectedOptions.push(option);
-                }
-            });
-        } else {
-            //Single option dropdown
-            var selectedOption = $('option:selected', selectElement);
-            if (selectedOption.val()) {
-                field.selectedOptionValue = selectedOption.val();
-                field.selectedOptionName = selectedOption.text();
-            } else {
-                field.selectedOptionValue = null;
-                field.selectedOptionName = null;
-            }
-        }
-    };
-    fieldHelpers.parseDate = function(row, field) {
-        field.type = "date";
-        throw "Not implemented";
-    };
-    fieldHelpers.parseTextbox = function(textInput, field) {
-        field.type = "text";
-        throw "Not implemented";
-    };
-    fieldHelpers.parseTextarea = function (textarea, field) {
-        field.type = "text";
-        throw "Not implemented";
-    };
-    fieldHelpers.parseCheckbox = function(checkbox, field) {
-        field.type = "boolean";
-        throw "Not implemented";
-    };
-    fieldHelpers.parseMulticheck = function(row, field) {
-        field.type = "option";
-        field.multiple = true;
-    };
-    fieldHelpers.parseRadio = function(row, field) {
-        field.type = "option";
-        throw "Not implemented";
-    };
-
     jQuery.paraportal = (new function() {
         var readyQueue = [];
         var isReady = false;
@@ -101,19 +18,19 @@
             }
         }
 
-        var permissions = {
-            "Knowledgebase" : "Knowledgebase",
-            "Download" : "Download",
-            "Chat" : "Chat",
-            "Ticket" : "Ticket",
-            "My Support" : "My Support",
-            "My Profile" : "My Profile",
-            "KB Subscribe" : "KB Subscribe",
-            "Product" : "Product",
-            "Email" : "Email",
-            "Glossary" : "Glossary",
-            "Troubleshooter" : "Troubleshooter" 
-        }
+        this.permissions = {
+            "Knowledgebase": "Knowledgebase",
+            "Download": "Download",
+            "Chat": "Chat",
+            "Ticket": "Ticket",
+            "My Support": "My Support",
+            "My Profile": "My Profile",
+            "KB Subscribe": "KB Subscribe",
+            "Product": "Product",
+            "Email": "Email",
+            "Glossary": "Glossary",
+            "Troubleshooter": "Troubleshooter"
+        };
 
         //List of pages that we may use on the portal
         this.pages = {
@@ -138,7 +55,8 @@
             "mychats": "mychats",
             "mysubscriptions": "mysubscriptions",
             "myemails": "myemails",
-        }
+            "myprofile" : "myprofile"
+        };
 
         this.portalURLs = {
             "/ics/support/splash.asp": this.pages.splash,
@@ -150,9 +68,9 @@
             "/ics/support/dllist.asp": this.pages.downloadfolder,
             "/ics/support/kbsplash.asp": this.pages.kbsplash,
             "/ics/support/kbanswer.asp": this.pages.kbarticle,
-            "/link/portal/\\d+/\\d+/article/\\d+/" : this.pages.kbarticle,
+            "/link/portal/\\d+/\\d+/article/\\d+/": this.pages.kbarticle,
             "/ics/support/kblist.asp": this.pages.kbfolder,
-            "/link/portal/\\d+/\\d+/articlefolder/\\d+/" : this.pages.kbfolder,
+            "/link/portal/\\d+/\\d+/articlefolder/\\d+/": this.pages.kbfolder,
             "/ics/support/ticketview.asp": this.pages.ticketdetails,
             "/ics/support/ticketpreview.asp": this.pages.ticketpreview,
             "/ics/support/kbresult.asp": this.pages.kbsearchresults,
@@ -164,15 +82,134 @@
             "/ics/support/myproducts.asp": this.pages.myproducts,
             "/ics/support/mychats.asp": this.pages.mychats,
             "/ics/support/mysubscriptions.asp": this.pages.mysubscriptions,
-            "/ics/support/myemails.asp": this.pages.myemails
-        }
+            "/ics/support/myemails.asp": this.pages.myemails,
+            "/ics/support/myprofile.asp": this.pages.myprofile
+        };
 
         this.customer = {};
-        this.permissions = [];
 
         var paraportal = this;
 
+        //We only want to parse when the DOM is ready
         jQuery(document).ready(function ($) {
+
+            var fieldHelpers = {};
+            /////////////////
+            //Field Parsing//
+            /////////////////
+            fieldHelpers.parseRow = function (rowElement) {
+                if ($('input[type="password"]', rowElement).length == 0) {
+                    var field = {};
+                    //determine if its required
+                    field.required = $('.required', rowElement).length > 0;
+                    $('.required,.colon,.maxchars', rowElement).remove();
+
+                    //Get the name
+                    field.name = $.trim($('label', rowElement).text());
+
+                    if ($('select', rowElement).length == 1) {
+                        //This is an dropdown field
+                        fieldHelpers.parseSelect($('select', rowElement), field);
+                    } else if ($('select', rowElement).length == 3) {
+                        //This is a date field
+                        fieldHelpers.parseDate(rowElement, field);
+                    } else if ($('textarea', rowElement).length > 0) {
+                        fieldHelpers.parseTextarea($('textarea', rowElement), field);
+                    } else if ($('input[type="text"]', rowElement).length > 0) {
+                        fieldHelpers.parseTextbox($('input[type="text"]', rowElement), field);
+                    } else if ($('input[type="checkbox"]', rowElement).length == 1) {
+                        fieldHelpers.parseCheckbox($('input[type="checkbox"]', rowElement), field);
+                    } else if (($('input[type="checkbox"]', rowElement).length > 1)) {
+                        fieldHelpers.parseMulticheck(rowElement, field);
+                    } else if ($('input[type="radio"]', rowElement).length > 0) {
+                        fieldHelpers.parseRadio(rowElement, field);
+                    }
+
+                    return field;
+                }
+            };
+            //Dropdowns
+            fieldHelpers.parseSelect = function (selectElement, field) {
+                field.type = "option";
+                if ($(selectElement).attr('multiple') == "multiple") {
+                    field.multiple = true;
+                    field.selectedOptions = [];
+                    var selectedOptions = $('option:selected', selectElement);
+                    selectedOptions.each(function () {
+                        if ($(this).val()) {
+                            var option = {};
+                            option.selectedOptionValue = $(this).val();
+                            option.selectedOptionName = $(this).text();
+                            field.selectedOptions.push(option);
+                        }
+                    });
+                } else {
+                    //Single option dropdown
+                    var selectedOption = $('option:selected', selectElement);
+                    if (selectedOption.val()) {
+                        field.selectedOptionValue = selectedOption.val();
+                        field.selectedOptionName = selectedOption.text();
+                    } else {
+                        field.selectedOptionValue = null;
+                        field.selectedOptionName = null;
+                    }
+                }
+            };
+            //Date Fields
+            fieldHelpers.parseDate = function (row, field) {
+                field.type = "date";
+                field.value = {};
+                if ($('select[id*="dtMM"]', row).val() != "0" && $('select[id*="dtDD"]', row).val() != "0" && $('select[id*="dtYY"]', row).val() != "0") {
+                    field.value.month = $('select[id*="dtMM"] option:selected', row).text();
+                    field.value.Date = $('select[id*="dtDD"] option:selected', row).text();
+                    field.value.year = $('select[id*="dtYY"] option:selected', row).text();
+                } else {
+                    field.value.month = null;
+                    field.value.date = null;
+                    field.value.year = null;
+                }
+            };
+            //Text boxes
+            fieldHelpers.parseTextbox = function (textInput, field) {
+                field.type = "text";
+                field.value = textInput.val();
+            };
+            //Text areas
+            fieldHelpers.parseTextarea = function (textarea, field) {
+                field.type = "text";
+                field.value = textarea.val();
+            };
+            //Single Checkbox
+            fieldHelpers.parseCheckbox = function (checkbox, field) {
+                field.type = "boolean";
+                field.value = checkbox.attr('checked') == "checked";
+            };
+            //Multiple Checkbox
+            fieldHelpers.parseMulticheck = function (row, field) {
+                field.type = "option";
+                field.multiple = true;
+                field.selectedOptions = [];
+                $('input[checked]', row).each(function() {
+                    var option = {
+                        "selectedOptionValue": $(this).val(),
+                        "selectedOptionName": $(this).next().text()
+                    };
+                    field.selectedOptions.push(option);
+                });
+            };
+            //Radio options
+            fieldHelpers.parseRadio = function (row, field) {
+                field.type = "option";
+                var selectedValue = $('input[type="hidden"]', row).val();
+                if (selectedValue) {
+                    var selectedRadio = $('input[type="radio"][value="' + selectedValue + '"]', row);
+                    field.selectionOptionName = selectedRadio.next().text();
+                    field.selectedOptionValue = selectedValue;
+                } else {
+                    field.selectedOptionName = null;
+                    field.selectedOptionValue = null;
+                }
+            };
 
             //Get the product table from the myproducts page and return the resulting object
             paraportal.getProducts = function () {
@@ -181,7 +218,7 @@
 
                 if (!loggedIn) {
                     def.reject("Not logged in");
-                } else if ($.inArray(permissions.Product, paraportal.permissions) != -1) {
+                } else if ($.inArray(paraportal.permissions.Product, paraportal.customer.permissions) != -1) {
                     $.get("/ics/support/myproducts.asp").done(function (data, status) {
 
                         if ($('.errormessage', data).length > 0) {
@@ -220,14 +257,13 @@
                 return def;
             }
 
-
             //Get the customer fields from the customer page and return the resulting object
             paraportal.getCustomerFields = function () {
                 var def = $.Deferred();
 
                 if (!loggedIn) {
                     def.reject("Not logged in");
-                } else if ($.inArray(permissions["My Profile"], paraportal.permissions) != -1) {
+                } else if ($.inArray(paraportal.permissions["My Profile"], paraportal.customer.permissions) != -1) {
                     $.get("/ics/support/myprofile.asp").done(function (data, status) {
 
                         if ($('.errormessage', data).length > 0) {
@@ -253,7 +289,7 @@
                 return def;
             }
 
-            //Parse the dom for customer information
+            //Parse the DOM for customer information
             loggedIn = $('#welcome_email').length > 0;
             if (loggedIn) {
                 paraportal.customer.firstName = $('#welcome_firstname').text();
@@ -274,25 +310,29 @@
 
             //Permissions are exposed via the portal submenus...
             var menuToPermissions = {
-                "#mli_knowledge": permissions["Knowledgebase"],
-                "#mli_download": permissions["Download"],
-                "#mli_realtime": permissions["Chat"],
-                "#mli_ticket": permissions["Ticket"],
-                "#mli_myHistory" : permissions["My Support"],
-                "#mli_mySubscriptions": permissions["KB Subscribe"],
-                "#mli_myProducts": permissions["Product"],
-                "#mli_myProfile" : permissions["My Profile"],
-                "#mli_email": permissions["Email"],
-                "#mli_glossary": permissions["Glossary"],
-                "#mli_troubleshooter": permissions["Troubleshooter"] //FYI Troubleshooter is sub-optimal, just use EasyAnswer
+                "#mli_knowledge": paraportal.permissions["Knowledgebase"],
+                "#mli_download": paraportal.permissions["Download"],
+                "#mli_realtime": paraportal.permissions["Chat"],
+                "#mli_ticket": paraportal.permissions["Ticket"],
+                "#mli_myHistory": paraportal.permissions["My Support"],
+                "#mli_mySubscriptions": paraportal.permissions["KB Subscribe"],
+                "#mli_myProducts": paraportal.permissions["Product"],
+                "#mli_myProfile": paraportal.permissions["My Profile"],
+                "#mli_email": paraportal.permissions["Email"],
+                "#mli_glossary": paraportal.permissions["Glossary"],
+                "#mli_troubleshooter": paraportal.permissions["Troubleshooter"] //FYI Troubleshooter is sub-optimal, just use EasyAnswer
             };
 
+            paraportal.customer.permissions = [];
+
             for (var id in menuToPermissions) {
+                //Parse our permissions from the submenu
                 if ($('.submenu ' + id).length > 0)
-                    paraportal.permissions.push(menuToPermissions[id]);
+                    paraportal.customer.permissions.push(menuToPermissions[id]);
             }
 
             for (var url in paraportal.portalURLs) {
+                //Determine currentPage of the portal
                 var regex = new RegExp(url);
                 if (regex.test(window.location.pathname.toLowerCase())) {
                     paraportal.currentPage = paraportal.portalURLs[url];
