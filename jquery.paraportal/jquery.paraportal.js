@@ -1,4 +1,88 @@
 ﻿if (jQuery) {
+
+    var fieldHelpers = {};
+    fieldHelpers.parseRow = function(rowElement) {
+        if ($('input[type="password"]', rowElement).length == 0) {
+            var field = {};
+            //determine if its required
+            field.required = $('.required', rowElement).length > 0;
+            $('.required,.colon,.maxchars', rowElement).remove();
+
+            //Get the name
+            field.name = $.trim($('label', rowElement).text());
+
+            if ($('select', rowElement).length == 1) {
+                //This is an dropdown field
+                fieldHelpers.parseSelect($('select', rowElement), field);
+            } else if ($('select', rowElement).length == 3) {
+                //This is a date field
+                fieldHelpers.parseDate(rowElement, field);
+            } else if ($('textarea', rowElement).length > 0) {
+                fieldHelpers.parseTextarea($('textarea', rowElement));
+            } else if ($('input[type="text"]', rowElement).length > 0) {
+                fieldHelpers.parseTextbox($('input[type="text"]', rowElement));
+            } else if ($('input[type="checkbox"]', rowElement).length == 1) {
+                fieldHelpers.parseCheckbox($('input[type="checkbox"]', rowElement), field);
+            } else if (($('input[type="checkbox"]', rowElement).length > 1)) {
+                fieldHelpers.parseMulticheck(rowElement, field);
+            } else if ($('input[type="radio"]', rowElement).length > 0) {
+                fieldHelpers.parseRadio(rowElement, field);
+            }
+
+            return field;
+        }
+    };
+    fieldHelpers.parseSelect = function(selectElement, field) {
+        field.type = "option";
+        if ($(selectElement).attr('multiple') == "multiple") {
+            field.multiple = true;
+            field.selectedOptions = [];
+            var selectedOptions = $('option:selected', selectElement);
+            selectedOptions.each(function() {
+                if ($(this).val()) {
+                    var option = {};
+                    option.selectedOptionValue = $(this).val();
+                    option.selectedOptionName = $(this).text();
+                    field.selectedOptions.push(option);
+                }
+            });
+        } else {
+            //Single option dropdown
+            var selectedOption = $('option:selected', selectElement);
+            if (selectedOption.val()) {
+                field.selectedOptionValue = selectedOption.val();
+                field.selectedOptionName = selectedOption.text();
+            } else {
+                field.selectedOptionValue = null;
+                field.selectedOptionName = null;
+            }
+        }
+    };
+    fieldHelpers.parseDate = function(row, field) {
+        field.type = "date";
+        throw "Not implemented";
+    };
+    fieldHelpers.parseTextbox = function(textInput, field) {
+        field.type = "text";
+        throw "Not implemented";
+    };
+    fieldHelpers.parseTextarea = function (textarea, field) {
+        field.type = "text";
+        throw "Not implemented";
+    };
+    fieldHelpers.parseCheckbox = function(checkbox, field) {
+        field.type = "boolean";
+        throw "Not implemented";
+    };
+    fieldHelpers.parseMulticheck = function(row, field) {
+        field.type = "option";
+        field.multiple = true;
+    };
+    fieldHelpers.parseRadio = function(row, field) {
+        field.type = "option";
+        throw "Not implemented";
+    };
+
     jQuery.paraportal = (new function() {
         var readyQueue = [];
         var isReady = false;
@@ -151,34 +235,10 @@
                         } else {
                             var customerFields = [];
 
-                            $('div[id*="ROW"]', data).each(function() {
-                                if ($('input[type="password"]', this).length == 0) {
-                                    var field = {};
-                                    //determine if its required
-                                    field.required = $('.required', this).length > 0;
-                                    $('.required,.colon,.maxchars', this).remove();
-
-                                    //Get the name
-                                    field.name = $.trim($('label', this).text());
-
-                                    if ($('select', this).length == 1) {
-                                        //This is an dropdown field
-                                        field.type = "option";
-                                    } else if ($('select', this).length == 3) {
-                                        //This is a date field
-                                        field.type = "date";
-                                    } else if ($('textarea', this).length > 0) {
-                                        field.type = "text";
-                                    } else if ($('input[type="text"]', this).length > 0) {
-                                        field.type = 'text';
-                                    } else if ($('input[type="checkbox"]', this).length == 1) {
-                                        field.type = "checkbox";
-                                    } else if (($('input[type="checkbox"]', this).length > 1) {
-                                        field.type = "option";
-                                    }
-
+                            $('div[id*="ROW"]', data).each(function () {
+                                var field = fieldHelpers.parseRow(this);
+                                if (field)
                                     customerFields.push(field);
-                                }                                
                             });
 
                             def.resolve(customerFields);
