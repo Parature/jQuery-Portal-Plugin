@@ -20,6 +20,7 @@
         });
 
     //Customer information will be parsed from the DOM
+    console.log("Customer Object:");
     console.log($.paraportal.customer);
 
     if ($.paraportal.customer.isAuthenticated) {
@@ -28,18 +29,33 @@
     }
 
     //Possible permissions are listed as an array
-    for (var i = 0; i < $.paraportal.permissions; i++) {
-        console.log($.paraportal.permissions[i]);
+    console.log("Possible Permissions:");
+    for (var permission in $.paraportal.permissions) {
+        console.log(permission);
     }
 
+    console.log("Customer Permissions:");
     //Customer permissions are on the customer object
-    for (var i = 0; i < $.paraportal.customer.permissions; i++) {
+    for (var i = 0; i < $.paraportal.customer.permissions.length; i++) {
         console.log($.paraportal.customer.permissions[i]);
     }
 
     //Example of using the customer permissions array to determine if the customer has access to a particular feature
     var hasChatPermissions = $.inArray($.paraportal.permissions.Chat, $.paraportal.customer.permissions) != -1;
 
-    //Do whatever you'd like to do with the DOM
+    //Splash
+    if ($.paraportal.currentPage == $.paraportal.pages.splash) {
+        
+        //Anything that should only happen on the Splash page can be executed here
+
+        console.log('The end user is on the Splash page');
+    }
+
+    //KB article
+    if ($.paraportal.currentPage == $.paraportal.pages.kbarticle) {
+        console.log('The end user is on the KB Article page');
+    }
+
+    //Do whatever you'd like to do with the DOM now
 
 });
