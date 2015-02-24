@@ -8,6 +8,7 @@ The plugin will assist with the following:
 
 * Determining Customer Information:
 	* Email Address
+	* Username (if available)
 	* Customer Number (if available)
 	* First Name
 	* Last Name
