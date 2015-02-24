@@ -14,7 +14,7 @@ The plugin will assist with the following:
 	* Last Name
 	* If the customer is authenticated
 	* Permissions
-* Retrieving Customer Fields (if avaialble)
+* Retrieving Customer Fields (if available)
 * Retrieving Customer Products (if available)
 * Providing Page specific logic or determining the current page of the end user
 * A list of possible permissions
