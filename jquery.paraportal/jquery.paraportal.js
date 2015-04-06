@@ -55,7 +55,10 @@
             "mychats": "mychats",
             "mysubscriptions": "mysubscriptions",
             "myemails": "myemails",
-            "myprofile" : "myprofile"
+            "myprofile": "myprofile",
+            "forgotpassword": "forgotpassword",
+            "contactregister": "contactregister",
+            "glossary" : "glossary"
         };
 
         this.portalURLs = {
@@ -83,7 +86,31 @@
             "/ics/support/mychats.asp": this.pages.mychats,
             "/ics/support/mysubscriptions.asp": this.pages.mysubscriptions,
             "/ics/support/myemails.asp": this.pages.myemails,
-            "/ics/support/myprofile.asp": this.pages.myprofile
+            "/ics/support/myprofile.asp": this.pages.myprofile,
+            "/ics/support/glossary.asp" : this.pages.glossary,
+            //Omni Portal Pages
+            "/support/\\d+/\\d+/.+/portal/index": this.pages.splash,
+            "/support/\\d+/\\d+/.+/account/register": this.pages.contactregister,
+            "/support/\\d+/\\d+/.+/ticket/new": this.pages.ticketsubmit,
+            "/support/\\d+/\\d+/.+/ticket/confirmsubmission": this.pages.ticketconfirm,
+            "/support/\\d+/\\d+/.+/ticket/view/\\d+": this.pages.ticketdetails,
+            "/support/\\d+/\\d+/.+/account/forgotpassword": this.pages.forgotpassword,
+            "/support/\\d+/\\d+/.+/article/index": this.pages.kbsplash,
+            "/support/\\d+/\\d+/.+/article/view/\\d+/.+": this.pages.kbarticle,
+            "/support/\\d+/\\d+/.+/article/folder/\\d+/.+": this.pages.kbfolder,
+            "/support/\\d+/\\d+/.+/download/index": this.pages.downloadsplash,
+            "/support/\\d+/\\d+/.+/download/folder/\\d+/.+": this.pages.downloadfolder,
+            "/support/\\d+/\\d+/.+/search/searchquery": this.pages.kbsearchresults,
+            "/support/\\d+/\\d+/.+/portal/contactus": this.pages.contactus,
+            "/support/\\d+/\\d+/.+/account/login": this.pages.mylogin,
+            "/support/\\d+/\\d+/.+/portal/history": this.pages.myhistory,
+            "/support/\\d+/\\d+/.+/mychat/index": this.pages.mychats,
+            "/support/\\d+/\\d+/.+/ticket/index": this.pages.mytickets,
+            "/support/\\d+/\\d+/.+/myemail/index": this.pages.myemails,
+            "/support/\\d+/\\d+/.+/article/subscribed": this.pages.mysubscriptions,
+            "/support/\\d+/\\d+/.+/myproduct/index": this.pages.myproducts,
+            "/support/\\d+/\\d+/.+/account/profiledetails": this.pages.myprofile,
+            "/support/\\d+/\\d+/.+/glossary/index": this.pages.glossary
         };
 
         this.customer = {};
