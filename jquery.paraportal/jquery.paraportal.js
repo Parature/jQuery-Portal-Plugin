@@ -187,7 +187,7 @@
         }
 
         //Parse the DOM for customer information
-        function parseLogin() {
+        function parseLogin(paraportal) {
             loggedIn = $('#welcome_email').length > 0 || $('#weclome_firstname').length > 0;
             if (loggedIn) {
                 paraportal.customer.firstName = $('#welcome_firstname').text();
