@@ -131,6 +131,83 @@
 
         /* Initialization Methods */
 
+        //Parse permissions from submenu
+        function parsePermissions(paraportal) {
+            //Permissions are exposed via the portal submenus...
+            var menuToPermissions = {
+                "#mli_knowledge": paraportal.permissions["Knowledgebase"],
+                "#mli_download": paraportal.permissions["Download"],
+                "#mli_realtime": paraportal.permissions["Chat"],
+                "#mli_ticket": paraportal.permissions["Ticket"],
+                "#mli_myHistory": paraportal.permissions["My Support"],
+                "#mli_mySubscriptions": paraportal.permissions["KB Subscribe"],
+                "#mli_myProducts": paraportal.permissions["Product"],
+                "#mli_myProfile": paraportal.permissions["My Profile"],
+                "#mli_email": paraportal.permissions["Email"],
+                "#mli_glossary": paraportal.permissions["Glossary"],
+                "#mli_troubleshooter": paraportal.permissions["Troubleshooter"] //FYI Troubleshooter is sub-optimal, just use EasyAnswer
+            };
+
+            paraportal.customer.permissions = [];
+
+            for (var id in menuToPermissions) {
+                //Parse our permissions from the submenu
+                if (jQuery('.submenu ' + id).length > 0)
+                    paraportal.customer.permissions.push(menuToPermissions[id]);
+            }
+        }
+
+        //Perform any callbacks provided on ready
+        function performCallbacks() {
+
+            isReady = true;
+
+            //Execute any ready callbacks
+            for (var i = 0; i < readyQueue.length; i++) {
+                var callback = readyQueue[i];
+                callback(jQuery);
+            }
+        }
+
+        //Parse the page of the portal based on the URL
+        function parsePage(paraportal) {
+            for (var url in paraportal.portalURLs) {
+                //Determine currentPage of the portal
+                var regex = new RegExp(url);
+                if (regex.test(window.location.pathname.toLowerCase())) {
+                    paraportal.currentPage = paraportal.portalURLs[url];
+                    break;
+                }
+            }
+
+            //If its some page that we haven't accounted for, just return the path
+            if (!paraportal.currentPage) {
+                paraportal.currentPage = window.location.pathname.toLowerCase();
+            }
+        }
+
+        //Parse the DOM for customer information
+        function parseLogin() {
+            loggedIn = $('#welcome_email').length > 0 || $('#weclome_firstname').length > 0;
+            if (loggedIn) {
+                paraportal.customer.firstName = $('#welcome_firstname').text();
+                paraportal.customer.lastName = $('#welcome_lastname').text();
+                paraportal.customer.username = $('#welcome_username').text();
+                paraportal.customer.email = $('#welcome_email').text();
+
+                var numReg = /\d+/g;
+                var matches = $('#welcome_custnum').text().match(numReg);
+                if (matches) {
+                    paraportal.customer.custNum = matches[0];
+                } else {
+                    if (window.console) console.log("Warning: Customer Number is not available. If you need this information, please make sure that the Customer Number static field is present and that the field is not set to internal.");
+                }
+            }
+
+            paraportal.customer.isAuthenticated = loggedIn;
+        }
+
+        //Using different initializers since the DOM is very different from flexible to omni
         function flexiblePortalInit(paraportal) {
             //We only want to parse when the DOM is ready
             jQuery(document).ready(function ($) {
@@ -331,74 +408,27 @@
                     return def;
                 }
 
-                //Parse the DOM for customer information
-                loggedIn = $('#welcome_email').length > 0;
-                if (loggedIn) {
-                    paraportal.customer.firstName = $('#welcome_firstname').text();
-                    paraportal.customer.lastName = $('#welcome_lastname').text();
-                    paraportal.customer.username = $('#welcome_username').text();
-                    paraportal.customer.email = $('#welcome_email').text();
+                parseLogin(paraportal);
 
-                    var numReg = /\d+/g;
-                    var matches = $('#welcome_custnum').text().match(numReg);
-                    if (matches) {
-                        paraportal.customer.custNum = matches[0];
-                    } else {
-                        if (window.console) console.log("Warning: Customer Number is not available. If you need this information, please make sure that the Customer Number static field is present and that the field is not set to internal.");
-                    }
-                }
+                parsePermissions(paraportal);
 
-                paraportal.customer.isAuthenticated = loggedIn;
+                parsePage(paraportal);
 
-                //Permissions are exposed via the portal submenus...
-                var menuToPermissions = {
-                    "#mli_knowledge": paraportal.permissions["Knowledgebase"],
-                    "#mli_download": paraportal.permissions["Download"],
-                    "#mli_realtime": paraportal.permissions["Chat"],
-                    "#mli_ticket": paraportal.permissions["Ticket"],
-                    "#mli_myHistory": paraportal.permissions["My Support"],
-                    "#mli_mySubscriptions": paraportal.permissions["KB Subscribe"],
-                    "#mli_myProducts": paraportal.permissions["Product"],
-                    "#mli_myProfile": paraportal.permissions["My Profile"],
-                    "#mli_email": paraportal.permissions["Email"],
-                    "#mli_glossary": paraportal.permissions["Glossary"],
-                    "#mli_troubleshooter": paraportal.permissions["Troubleshooter"] //FYI Troubleshooter is sub-optimal, just use EasyAnswer
-                };
-
-                paraportal.customer.permissions = [];
-
-                for (var id in menuToPermissions) {
-                    //Parse our permissions from the submenu
-                    if ($('.submenu ' + id).length > 0)
-                        paraportal.customer.permissions.push(menuToPermissions[id]);
-                }
-
-                for (var url in paraportal.portalURLs) {
-                    //Determine currentPage of the portal
-                    var regex = new RegExp(url);
-                    if (regex.test(window.location.pathname.toLowerCase())) {
-                        paraportal.currentPage = paraportal.portalURLs[url];
-                        break;
-                    }
-                }
-
-                //If its some page that we haven't accounted for, just return the path
-                if (!paraportal.currentPage) {
-                    paraportal.currentPage = window.location.pathname.toLowerCase();
-                }
-
-                isReady = true;
-
-                //Execute any ready callbacks
-                for (var i = 0; i < readyQueue.length; i++) {
-                    var callback = readyQueue[i];
-                    callback(jQuery);
-                }
+                performCallbacks();
             });
         };
 
         function omniPortalInit(paraportal) {
-            
+            jQuery(document).ready(function($) {
+
+                parseLogin(paraportal);
+
+                parsePermissions(paraportal);
+
+                parsePage(paraportal);
+
+                performCallbacks();
+            });
         }
 
         if (this.portalMode == this.portalModes.flexible) {
