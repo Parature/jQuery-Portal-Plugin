@@ -188,15 +188,15 @@
 
         //Parse the DOM for customer information
         function parseLogin(paraportal) {
-            loggedIn = $('#welcome_email').length > 0 || $('#weclome_firstname').length > 0;
+            loggedIn = jQuery('#welcome_email').length > 0 || jQuery('#welcome_firstname').length > 0;
             if (loggedIn) {
-                paraportal.customer.firstName = $('#welcome_firstname').text();
-                paraportal.customer.lastName = $('#welcome_lastname').text();
-                paraportal.customer.username = $('#welcome_username').text();
-                paraportal.customer.email = $('#welcome_email').text();
+                paraportal.customer.firstName = jQuery('#welcome_firstname').text();
+                paraportal.customer.lastName = jQuery('#welcome_lastname').text();
+                paraportal.customer.username = jQuery('#welcome_username').text();
+                paraportal.customer.email = jQuery('#welcome_email').text();
 
                 var numReg = /\d+/g;
-                var matches = $('#welcome_custnum').text().match(numReg);
+                var matches = jQuery('#welcome_custnum').text().match(numReg);
                 if (matches) {
                     paraportal.customer.custNum = matches[0];
                 } else {
