@@ -176,6 +176,7 @@
                 var regex = new RegExp(url);
                 if (regex.test(window.location.pathname.toLowerCase())) {
                     paraportal.currentPage = paraportal.portalURLs[url];
+                    jQuery('body').addClass(paraportal.currentPage);
                     break;
                 }
             }
@@ -184,6 +185,7 @@
             if (!paraportal.currentPage) {
                 paraportal.currentPage = window.location.pathname.toLowerCase();
             }
+
         }
 
         //Parse the DOM for customer information
