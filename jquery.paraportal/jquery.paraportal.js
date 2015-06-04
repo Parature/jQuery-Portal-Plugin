@@ -112,7 +112,7 @@
                 "/support/\\d+/\\d+/.+/article/view/\\d+/.+": this.pages.kbarticle,
                 "/support/\\d+/\\d+/.+/article/folder/\\d+/.+": this.pages.kbfolder,
                 "/support/\\d+/\\d+/.+/download/index": this.pages.downloadsplash,
-                "/support/\\d+/\\d+/.+/download/folder/\\d+/.+": this.pages.downloadfolder,
+                "/support/\\d+/\\d+/.+/download/downloadfolder/\\d+/.+": this.pages.downloadfolder,
                 "/support/\\d+/\\d+/.+/search/searchquery": this.pages.kbsearchresults,
                 "/support/\\d+/\\d+/.+/portal/contactus": this.pages.contactus,
                 "/support/\\d+/\\d+/.+/account/login": this.pages.mylogin,
