@@ -148,12 +148,12 @@
                 "#mli_troubleshooter": paraportal.permissions["Troubleshooter"] //FYI Troubleshooter is sub-optimal, just use EasyAnswer
             };
 
-            paraportal.customer.permissions = [];
+            paraportal.customer.permissions = {};
 
             for (var id in menuToPermissions) {
                 //Parse our permissions from the submenu
                 if (jQuery('.submenu ' + id).length > 0)
-                    paraportal.customer.permissions.push(menuToPermissions[id]);
+                    paraportal.customer.permissions[menuToPermissions[id]] = menuToPermissions[id];
             }
         }
 
@@ -339,7 +339,7 @@
 
                     if (!loggedIn) {
                         def.reject("Not logged in");
-                    } else if ($.inArray(paraportal.permissions.Product, paraportal.customer.permissions) != -1) {
+                    } else if (paraportal.customer.permissions[paraportal.permissions.Product]) {
                         $.get("/ics/support/myproducts.asp").done(function (data, status) {
 
                             if ($('.errormessage', data).length > 0) {
@@ -384,7 +384,7 @@
 
                     if (!loggedIn) {
                         def.reject("Not logged in");
-                    } else if ($.inArray(paraportal.permissions["My Profile"], paraportal.customer.permissions) != -1) {
+                    } else if (paraportal.customer.permissions[paraportal.permissions["My Profile"]]) {
                         $.get("/ics/support/myprofile.asp").done(function (data, status) {
 
                             if ($('.errormessage', data).length > 0) {
