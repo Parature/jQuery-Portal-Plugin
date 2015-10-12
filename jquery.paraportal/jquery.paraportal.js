@@ -1,8 +1,6 @@
 ﻿if (jQuery) {
 
-    
-
-    jQuery.paraportal = (new function() {
+    var paraportal = (new function () {
         var readyQueue = [];
         var isReady = false;
         var loggedIn;
