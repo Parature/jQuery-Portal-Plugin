@@ -212,7 +212,7 @@
                     } else {
                         if (window.console) console.log("Warning: Customer Number is not available. If you need this information, please make sure that the Customer Number static field is present and that the field is not set to internal.");
                     }
-                } else if (portalMode == paraportal.portalModes.omni) {
+                } else if (paraportal.portalMode == paraportal.portalModes.omni) {
                     paraportal.customer.custNum = paraCust.paraCustNum;
                 }
             }
