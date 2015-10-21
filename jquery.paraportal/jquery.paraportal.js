@@ -1,6 +1,6 @@
 ﻿if (jQuery) {
 
-    var paraportal = (new function () {
+    var paraportal = (new function() {
         var readyQueue = [];
         var isReady = false;
         var loggedIn;
@@ -35,6 +35,7 @@
         //List of pages that we may use on the portal
         this.pages = {
             "splash": "splash",
+            "ticketpresubmit": "ticketpresubmit",
             "ticketsubmit": "ticketsubmit",
             "ticketconfirm": "ticketconfirm",
             "srsplash": "srsplash",
@@ -58,7 +59,7 @@
             "myprofile": "myprofile",
             "forgotpassword": "forgotpassword",
             "contactregister": "contactregister",
-            "glossary" : "glossary"
+            "glossary": "glossary"
         };
 
         this.portalModes = {
@@ -173,8 +174,16 @@
                 //Determine currentPage of the portal
                 var regex = new RegExp(url);
                 if (regex.test(window.location.pathname.toLowerCase())) {
+
                     paraportal.currentPage = paraportal.portalURLs[url];
+
+                    if (portalMode == portalModes.omni && paraportal.currentPage == paraportal.pages.ticketsubmit && jQuery('#configFields').length > 0) {
+                        //Omni has one page dedicated to both ticket submission and product/department selection before submitting a ticket. Need to check the DOM for a form to know which one we're on...
+                        paraportal.currentPage = paraportal.pages.ticketpresubmit;
+                    }
+
                     jQuery('body').addClass(paraportal.currentPage);
+
                     break;
                 }
             }
@@ -195,12 +204,16 @@
                 paraportal.customer.username = jQuery('#welcome_username').text();
                 paraportal.customer.email = jQuery('#welcome_email').text();
 
-                var numReg = /\d+/g;
-                var matches = jQuery('#welcome_custnum').text().match(numReg);
-                if (matches) {
-                    paraportal.customer.custNum = matches[0];
-                } else {
-                    if (window.console) console.log("Warning: Customer Number is not available. If you need this information, please make sure that the Customer Number static field is present and that the field is not set to internal.");
+                if (portalMode == paraportal.portalModes.flexible) {
+                    var numReg = /\d+/g;
+                    var matches = jQuery('#welcome_custnum').text().match(numReg);
+                    if (matches) {
+                        paraportal.customer.custNum = matches[0];
+                    } else {
+                        if (window.console) console.log("Warning: Customer Number is not available. If you need this information, please make sure that the Customer Number static field is present and that the field is not set to internal.");
+                    }
+                } else if (portalMode == paraportal.portalModes.omni) {
+                    paraportal.customer.custNum = paraCust.paraCustNum;
                 }
             }
 
@@ -210,13 +223,13 @@
         //Using different initializers since the DOM is very different from flexible to omni
         function flexiblePortalInit(paraportal) {
             //We only want to parse when the DOM is ready
-            jQuery(document).ready(function ($) {
+            jQuery(document).ready(function($) {
 
                 var fieldHelpers = {};
                 /////////////////
                 //Field Parsing//
                 /////////////////
-                fieldHelpers.parseRow = function (rowElement) {
+                fieldHelpers.parseRow = function(rowElement) {
                     if ($('input[type="password"]', rowElement).length == 0) {
                         var field = {};
                         //determine if its required
@@ -248,13 +261,13 @@
                     }
                 };
                 //Dropdowns
-                fieldHelpers.parseSelect = function (selectElement, field) {
+                fieldHelpers.parseSelect = function(selectElement, field) {
                     field.type = "option";
                     if ($(selectElement).attr('multiple') == "multiple") {
                         field.multiple = true;
                         field.selectedOptions = [];
                         var selectedOptions = $('option:selected', selectElement);
-                        selectedOptions.each(function () {
+                        selectedOptions.each(function() {
                             if ($(this).val()) {
                                 var option = {};
                                 option.selectedOptionValue = $(this).val();
@@ -275,7 +288,7 @@
                     }
                 };
                 //Date Fields
-                fieldHelpers.parseDate = function (row, field) {
+                fieldHelpers.parseDate = function(row, field) {
                     field.type = "date";
                     field.value = {};
                     if ($('select[id*="dtMM"]', row).val() != "0" && $('select[id*="dtDD"]', row).val() != "0" && $('select[id*="dtYY"]', row).val() != "0") {
@@ -289,26 +302,26 @@
                     }
                 };
                 //Text boxes
-                fieldHelpers.parseTextbox = function (textInput, field) {
+                fieldHelpers.parseTextbox = function(textInput, field) {
                     field.type = "text";
                     field.value = textInput.val();
                 };
                 //Text areas
-                fieldHelpers.parseTextarea = function (textarea, field) {
+                fieldHelpers.parseTextarea = function(textarea, field) {
                     field.type = "text";
                     field.value = textarea.val();
                 };
                 //Single Checkbox
-                fieldHelpers.parseCheckbox = function (checkbox, field) {
+                fieldHelpers.parseCheckbox = function(checkbox, field) {
                     field.type = "boolean";
                     field.value = checkbox.attr('checked') == "checked";
                 };
                 //Multiple Checkbox
-                fieldHelpers.parseMulticheck = function (row, field) {
+                fieldHelpers.parseMulticheck = function(row, field) {
                     field.type = "option";
                     field.multiple = true;
                     field.selectedOptions = [];
-                    $('input[checked]', row).each(function () {
+                    $('input[checked]', row).each(function() {
                         var option = {
                             "selectedOptionValue": $(this).val(),
                             "selectedOptionName": $(this).next().text()
@@ -317,7 +330,7 @@
                     });
                 };
                 //Radio options
-                fieldHelpers.parseRadio = function (row, field) {
+                fieldHelpers.parseRadio = function(row, field) {
                     field.type = "option";
                     var selectedValue = $('input[type="hidden"]', row).val();
                     if (selectedValue) {
@@ -331,14 +344,14 @@
                 };
 
                 //Get the product table from the myproducts page and return the resulting object
-                paraportal.getProducts = function () {
+                paraportal.getProducts = function() {
 
                     var def = jQuery.Deferred();
 
                     if (!loggedIn) {
                         def.reject("Not logged in");
                     } else if (paraportal.customer.permissions[paraportal.permissions.Product]) {
-                        $.get("/ics/support/myproducts.asp").done(function (data, status) {
+                        $.get("/ics/support/myproducts.asp").done(function(data, status) {
 
                             if ($('.errormessage', data).length > 0) {
                                 def.reject("No product access");
@@ -347,16 +360,16 @@
 
                                 var products = [];
                                 var headers = [];
-                                $('.tableList th', data).each(function () {
+                                $('.tableList th', data).each(function() {
                                     headers.push($.trim($(this).text()));
                                 });
 
-                                $('.tableList tr', data).each(function () {
+                                $('.tableList tr', data).each(function() {
 
                                     var product = {};
 
                                     if ($('th', this).length == 0) {
-                                        $('td', this).each(function () {
+                                        $('td', this).each(function() {
                                             var index = $(this).index();
                                             product[headers[index]] = $.trim($(this).html());
                                         });
@@ -366,7 +379,7 @@
 
                                 def.resolve(products);
                             }
-                        }).fail(function (data, status) {
+                        }).fail(function(data, status) {
                             def.reject('HTTP Error: ' + status);
                         });
                     } else {
@@ -377,20 +390,20 @@
                 }
 
                 //Get the customer fields from the customer page and return the resulting object
-                paraportal.getCustomerFields = function () {
+                paraportal.getCustomerFields = function() {
                     var def = $.Deferred();
 
                     if (!loggedIn) {
                         def.reject("Not logged in");
                     } else if (paraportal.customer.permissions[paraportal.permissions["My Profile"]]) {
-                        $.get("/ics/support/myprofile.asp").done(function (data, status) {
+                        $.get("/ics/support/myprofile.asp").done(function(data, status) {
 
                             if ($('.errormessage', data).length > 0) {
                                 def.reject("Does not have My Profile access");
                             } else {
                                 var customerFields = [];
 
-                                $('div[id*="ROW"]', data).each(function () {
+                                $('div[id*="ROW"]', data).each(function() {
                                     var field = fieldHelpers.parseRow(this);
                                     if (field)
                                         customerFields.push(field);
@@ -398,7 +411,7 @@
 
                                 def.resolve(customerFields);
                             }
-                        }).fail(function (data, status) {
+                        }).fail(function(data, status) {
                             def.reject('HTTP Error: ' + status);
                         });
                     } else {
@@ -438,4 +451,6 @@
         }
 
     }());
+} else {
+    console.log('Warning: jQuery is missing. The Parature Portal plugin is dependant on jQuery.');
 }
