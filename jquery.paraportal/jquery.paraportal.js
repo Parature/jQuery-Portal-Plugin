@@ -204,7 +204,7 @@
                 paraportal.customer.username = jQuery('#welcome_username').text();
                 paraportal.customer.email = jQuery('#welcome_email').text();
 
-                if (portalMode == paraportal.portalModes.flexible) {
+                if (paraportal.portalMode == paraportal.portalModes.flexible) {
                     var numReg = /\d+/g;
                     var matches = jQuery('#welcome_custnum').text().match(numReg);
                     if (matches) {
