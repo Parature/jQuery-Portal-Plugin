@@ -177,7 +177,7 @@
 
                     paraportal.currentPage = paraportal.portalURLs[url];
 
-                    if (portalMode == portalModes.omni && paraportal.currentPage == paraportal.pages.ticketsubmit && jQuery('#configFields').length > 0) {
+                    if (paraportal.portalMode == paraportal.portalModes.omni && paraportal.currentPage == paraportal.pages.ticketsubmit && jQuery('#configFields').length == 0) {
                         //Omni has one page dedicated to both ticket submission and product/department selection before submitting a ticket. Need to check the DOM for a form to know which one we're on...
                         paraportal.currentPage = paraportal.pages.ticketpresubmit;
                     }
